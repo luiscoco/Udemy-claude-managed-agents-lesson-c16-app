@@ -1,0 +1,28 @@
+{
+  "source": "live-provider-commentary",
+  "sessionId": "sesn_01Q2oECiDkw9JaddwC6MhEmY",
+  "answer": "This is a local teaching experiment about memory management across sessions, demonstrating a compare-and-set update pattern applied to a local memory record (versioned from hash `8d930d\u2026` to `86c095\u2026`). The experiment's steps walk through reading a seed memory, reviewing new content, and applying a conditional update. A key lesson noted is that memory is not a business-effect ledger.",
+  "stopReason": "end_turn",
+  "eventTypes": [
+    "session.status_running",
+    "session.thread_status_running",
+    "user.message",
+    "span.model_request_start",
+    "agent.message",
+    "span.model_request_end",
+    "session.thread_status_idle",
+    "session.usage",
+    "session.status_idle"
+  ],
+  "requestUsage": [
+    {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 662,
+      "output_tokens": 88,
+      "speed": "standard"
+    }
+  ],
+  "experimentHash": "5cf112a53073aa6475e7768dff85265bd3c3198646f726363ba18272772b704e",
+  "scope": "A real text-only model response about the local experiment. External integrations and the experiment's correctness are not certified by this response."
+}

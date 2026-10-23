@@ -1,0 +1,29 @@
+import Anthropic from "@anthropic-ai/sdk";
+// One-time administrative setup. No top-level requests; keep ownership in your host inventory.
+export async function provisionStore(client: Anthropic) {
+  return client.beta.memoryStores.create({ name: "team-conventions",
+    description: "Aurora coding conventions. Consult before proposing changes." }, { maxRetries: 0, timeout: 10000 });
+}
+export async function attachReference(client: Anthropic, agentId: string, version: number,
+  environmentId: string, authorizedStoreId: string) {
+  // Caller authorizes this store for the user/tenant before calling.
+  return client.beta.sessions.create({
+    agent: { type: "agent_with_overrides", id: agentId, version,
+      tools: [{ type: "agent_toolset_20260401", default_config: { enabled: false }, configs: [
+        { name: "read", enabled: true }, { name: "glob", enabled: true }, { name: "grep", enabled: true }
+      ] }], mcp_servers: [], skills: [] }, environment_id: environmentId,
+    resources: [{ type: "memory_store", memory_store_id: authorizedStoreId, access: "read_only",
+      instructions: "Consult the project conventions before answering." }]
+  }, { maxRetries: 0, timeout: 10000 });
+}
+export async function updateReviewedMemory(client: Anthropic, storeId: string, memoryId: string,
+  expectedSha256: string, reviewedText: string) {
+  if (!/^[a-f0-9]{64}$/.test(expectedSha256)) throw new Error("Expected content hash required");
+  return client.beta.memoryStores.memories.update(memoryId, { memory_store_id: storeId,
+    content: reviewedText, precondition: { type: "content_sha256", content_sha256: expectedSha256 }
+  }, { maxRetries: 0, timeout: 10000 });
+}
+// SDK memory-store methods select agent-memory-2026-07-22. Do not combine that
+// header with managed-agents-2026-04-01 on memory-store requests.
+// Session attachment is a session endpoint and uses its normal Managed Agents beta.
+// Re-read and review conflicts; never silently overwrite. Memory is not a business ledger.

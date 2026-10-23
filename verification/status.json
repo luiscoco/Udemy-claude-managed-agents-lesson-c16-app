@@ -1,0 +1,13 @@
+{
+  "lesson": "C16",
+  "title": "Memory Stores Across Sessions",
+  "path": "lesson-c16\\lesson-c16-app",
+  "port": 3016,
+  "scenarios": 3,
+  "state": "implemented and verified",
+  "liveScope": "text-only commentary about the local result",
+  "typecheck": true,
+  "localTests": true,
+  "browserSmoke": "passed: desktop, mobile, scenario controls, source view",
+  "liveCommentarySmoke": "passed: real text-only session reached end_turn"
+}
