@@ -42,28 +42,83 @@ CLAUDE_MANAGED_ENVIRONMENT_ID=your_environment_id
 PORT=3016
 ```
 
-## How the application was developed
+## How the app was build
 
-The browser collects inputs; the Node host validates requests; the lesson implementation produces observable evidence. The architecture page walks through the real source with numbered steps, prerequisite configuration, source filenames and code excerpts.
+### 1. Enforce access before changing memory
 
-### Lesson implementation
+The seeded memory starts at version 1. A read-only reference is rejected before the proposed new text can be applied.
 
-[src/lesson.ts](https://github.com/luiscoco/Udemy-claude-managed-agents-lesson-c16-app/blob/main/src/lesson.ts)
+Source: [src/lesson.ts](src/lesson.ts#L13) · selected statements
 
 ```typescript
-  async run(input) {
+const current = { version: 1, text: "Use TypeScript." };
 
-const current={version:1,text:"Use TypeScript."};
-if(flag(input,"readOnly"))return report("rejected","Read-only references cannot write memory",{version:1},["Check authorized access before mutation"]);
-if(number(input,"expectedVersion")!==current.version)return report("conflict","Memory changed; reread and review before retrying",{version:1,currentHash:hash(current.text)},["Compare the expected memory version","Reject a stale write"]);
-const updated={version:2,text:text(input,"newText")};
-return report("passed","Applied a reviewed update to the local memory record",{...updated,oldHash:hash(current.text),newHash:hash(updated.text)},["Read the seed memory","Review new content","Apply compare-and-set","Memory is not a business-effect ledger"]);
-
-  }
-};
+if (flag(input, "readOnly"))
+  return report(
+    "rejected",
+    "Read-only references cannot write memory",
+    { version: 1 },
+    ["Check authorized access before mutation"],
+  );
 ```
 
-Read the architecture page for the remaining source excerpts and explanations, including input handling and optional provider behavior. The diagram describes this application, rather than implying that an external integration has been implemented.
+### 2. Reject a stale expected version
+
+The version check prevents a caller from overwriting a memory record it has not reviewed. A conflict returns the current version and content hash for a deliberate reread.
+
+Source: [src/lesson.ts](src/lesson.ts#L15)
+
+```typescript
+if (number(input, "expectedVersion") !== current.version)
+  return report(
+    "conflict",
+    "Memory changed; reread and review before retrying",
+    { version: 1, currentHash: hash(current.text) },
+    ["Compare the expected memory version", "Reject a stale write"],
+  );
+```
+
+### 3. Return a versioned content update
+
+A successful local update advances to version 2 and reports old and new hashes. Each experiment starts from the seed; this is not a persistent memory service or an effect-deduplication ledger.
+
+Source: [src/lesson.ts](src/lesson.ts#L16) · selected statements
+
+```typescript
+const updated = { version: 2, text: text(input, "newText") };
+
+return report(
+  "passed",
+  "Applied a reviewed update to the local memory record",
+  { ...updated, oldHash: hash(current.text), newHash: hash(updated.text) },
+  [
+    "Read the seed memory",
+    "Review new content",
+    "Apply compare-and-set",
+    "Memory is not a business-effect ledger",
+  ],
+);
+```
+
+### Check your understanding
+
+Run **Update the reviewed memory** in the application. Compare the result with these scenario expectations:
+
+```json
+{
+  "input": {
+    "expectedVersion": 1,
+    "newText": "Use TypeScript and explicit evidence.",
+    "readOnly": false
+  },
+  "expectedOutcome": "passed",
+  "checkEvidence": {
+    "version": 2
+  }
+}
+```
+
+Then try **Reject a stale writer**. Its expected outcome is `conflict`; identify the condition or evidence field that explains the difference.
 
 ## Validation
 
